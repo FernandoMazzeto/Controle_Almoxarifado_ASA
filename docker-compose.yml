@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: banco123
+      POSTGRES_DB: controle_pedidos
+    volumes:
+      - /home/fer/ASA/controle_pedidos:/var/lib/postgresql/data
+    networks:
+      app-network:
+        ipv4_address: 172.25.0.2
+
+  web:
+    build: .
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      app-network:
+        ipv4_address: 172.25.0.3
+    environment:
+      DATABASE_URL: postgresql://postgres:banco123@db:5432/controle_pedidos
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'     
+      - '15672:15672'   
+    networks:
+      app-network:
+        ipv4_address: 172.25.0.4
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
